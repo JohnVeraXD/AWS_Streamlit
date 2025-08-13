@@ -17,7 +17,7 @@ st.title("🎧 Transcripción de Audio con AWS")
 if "transcripcion" not in st.session_state:
     st.session_state.transcripcion = {"texto": "", "audio_url": ""}
 if "texto_editable" not in st.session_state:
-    st.session_state.texto_editable = ""
+    st.session_state.texto_editable = "Escribe o sube un audio para transcribir..."
 
 # --- Procesamiento de Audio ---
 uploaded_audio = st.file_uploader("Sube tu archivo de audio (MP3)", type=["mp3"])
@@ -32,7 +32,6 @@ if uploaded_audio:
                 audio_b64 = base64.b64encode(audio_bytes).decode("utf-8").replace("\n","")
                 
                 payload = {"body": audio_b64}
-                
                 response = requests.post(API_TRANSCRIBE, json=payload, timeout=300)
                 
                 if response.status_code == 200:
@@ -43,7 +42,7 @@ if uploaded_audio:
                         "texto": body_dict["texto_transcrito"],
                         "audio_url": body_dict["audio_url"]
                     }
-                    # Inicializar texto editable con la transcripción
+                    # Actualizar el texto editable con la transcripción
                     st.session_state.texto_editable = st.session_state.transcripcion["texto"]
                     
                     st.success("Transcripción completada")
@@ -51,20 +50,19 @@ if uploaded_audio:
                     api_resp = response.json()
                     error_data = json.loads(api_resp.get("body", "{}"))
                     st.error(f"Error: {error_data.get('error','Desconocido')}")
-
             except Exception as e:
                 st.error(f"Error crítico: {str(e)}")
 
 # --- Mostrar resultados y permitir edición ---
-if st.session_state.transcripcion["texto"]:
-    st.subheader("Resultado:")
-    # Aquí usamos un solo text_area para ambos casos
-    st.session_state.texto_editable = st.text_area(
-        "✏️ Texto transcrito (edítalo si quieres generar audio con Polly):",
-        value=st.session_state.texto_editable,
-        height=200
-    )
-    
+st.subheader("✏️ Texto para Polly")
+st.session_state.texto_editable = st.text_area(
+    "Texto editable (se actualizará con la transcripción si subes audio):",
+    value=st.session_state.texto_editable,
+    height=200
+)
+
+# Mostrar audio original si hay
+if st.session_state.transcripcion.get("audio_url"):
     st.markdown(f"""
     **Audio original:**  
     [Descargar]({st.session_state.transcripcion["audio_url"]})  
@@ -76,13 +74,11 @@ if st.button("Generar audio con Polly"):
     with st.spinner("Generando audio..."):
         try:
             payload = {"texto": st.session_state.texto_editable}
-            
             response = requests.post(API_POLLY, json=payload, timeout=300)
             
             if response.status_code == 200:
                 api_resp = response.json()
                 body_dict = json.loads(api_resp["body"]) if "body" in api_resp else api_resp
-                
                 audio_polly_url = body_dict["audio_url"]
                 
                 st.success("✅ Audio generado con Polly")
