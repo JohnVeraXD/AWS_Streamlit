@@ -54,7 +54,7 @@ if uploaded_audio:
             except Exception as e:
                 st.error(f"Error crítico: {str(e)}")
 
-st.title("🎧 Transcripción de texto a audio con Polly")
+st.title("🎧 Conversión de texto a audio con Polly")
 
 st.subheader("✏️ Texto para Polly")
 st.session_state.texto_editable = st.text_area(
