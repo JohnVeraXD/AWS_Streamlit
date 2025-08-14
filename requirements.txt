@@ -4,4 +4,4 @@ pandas
 streamlit-webrtc
 streamlit-mic-recorder
 pydub
-ffmpeg
+ffmpeg-python
