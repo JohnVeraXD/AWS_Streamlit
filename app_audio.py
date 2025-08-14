@@ -4,6 +4,8 @@ import base64
 import json
 from datetime import datetime
 from streamlit_mic_recorder import mic_recorder
+from pydub import AudioSegment
+import io
 
 API_TRANSCRIBE = "https://xw92ygr212.execute-api.us-east-1.amazonaws.com/default/fxTranscribeAudio"
 API_POLLY = "https://ohff8f7yfk.execute-api.us-east-1.amazonaws.com/default/fxPollyCrearAudio"
@@ -36,7 +38,13 @@ with col1:
         audio_data = mic_recorder(start_prompt="🎤 Grabar", stop_prompt="⏹ Detener", key="recorder")
         if audio_data:
             st.audio(audio_data["bytes"])
-            st.session_state.audio_bytes = audio_data["bytes"]
+            # Conversión WAV → MP3
+            from pydub import AudioSegment
+            import io
+            audio_segment = AudioSegment.from_file(io.BytesIO(audio_data["bytes"]), format="wav")
+            mp3_buffer = io.BytesIO()
+            audio_segment.export(mp3_buffer, format="mp3")
+            st.session_state.audio_bytes = mp3_buffer.getvalue()
 
     if st.session_state.audio_bytes and st.button("Transcribir"):
         with st.spinner("Procesando (1-3 minutos)..."):
