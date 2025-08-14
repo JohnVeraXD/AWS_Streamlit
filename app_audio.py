@@ -17,6 +17,8 @@ if "texto_editable" not in st.session_state:
     st.session_state.texto_editable = "Escribe o graba un audio para transcribir..."
 if "audio_bytes" not in st.session_state:
     st.session_state.audio_bytes = None
+if "audio_ext" not in st.session_state:
+    st.session_state.audio_ext = "mp3"  
 
 col1, col2 = st.columns(2)
 
@@ -31,19 +33,25 @@ with col1:
         if uploaded_audio:
             st.audio(uploaded_audio, format="audio/mp3")
             st.session_state.audio_bytes = uploaded_audio.read()
+            st.session_state.audio_ext = "mp3"
 
     elif metodo == "Grabar audio":
+        # mic_recorder devuelve WAV (PCM)
         audio_data = mic_recorder(start_prompt="🎤 Grabar", stop_prompt="⏹ Detener", key="recorder")
         if audio_data:
-            st.audio(audio_data["bytes"])
+            st.audio(audio_data["bytes"], format="audio/wav")
             st.session_state.audio_bytes = audio_data["bytes"]
+            st.session_state.audio_ext = "wav"  # <- importante
 
     if st.session_state.audio_bytes and st.button("Transcribir"):
         with st.spinner("Procesando (1-3 minutos)..."):
             try:
                 audio_b64 = base64.b64encode(st.session_state.audio_bytes).decode("utf-8")
                 payload = {"body": audio_b64}
-                response = requests.post(API_TRANSCRIBE, json=payload, timeout=300)
+
+                # Pasa el formato a Lambda vía querystring
+                url = f"{API_TRANSCRIBE}?ext={st.session_state.audio_ext}"
+                response = requests.post(url, json=payload, timeout=300)
 
                 if response.status_code == 200:
                     api_resp = response.json()
@@ -54,7 +62,6 @@ with col1:
                         "audio_url": body_dict["audio_url"]
                     }
                     st.session_state.texto_editable = st.session_state.transcripcion["texto"]
-
                     st.success("✅ Transcripción completada")
                 else:
                     error_data = json.loads(response.json().get("body", "{}"))
