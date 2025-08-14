@@ -54,6 +54,7 @@ if uploaded_audio:
             except Exception as e:
                 st.error(f"Error crítico: {str(e)}")
 
+st.title("🎧 Transcripción de text a audio con Polly")
 
 st.subheader("✏️ Texto para Polly")
 st.session_state.texto_editable = st.text_area(
@@ -71,7 +72,6 @@ if st.session_state.transcripcion.get("audio_url"):
     """)
 
 # --- Síntesis de voz con Polly ---
-st.title("🎧 Transcripción de text a audio con Polly")
 if st.button("Generar audio con Polly"):
     with st.spinner("Generando audio..."):
         try:
