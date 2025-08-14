@@ -71,6 +71,7 @@ if st.session_state.transcripcion.get("audio_url"):
     """)
 
 # --- Síntesis de voz con Polly ---
+st.title("🎧 Transcripción de text a audio con Polly")
 if st.button("Generar audio con Polly"):
     with st.spinner("Generando audio..."):
         try:
