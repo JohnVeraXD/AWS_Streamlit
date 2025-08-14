@@ -7,7 +7,6 @@ from datetime import datetime
 # Configuración
 API_TRANSCRIBE = "https://xw92ygr212.execute-api.us-east-1.amazonaws.com/default/fxTranscribeAudio"
 API_POLLY = "https://ohff8f7yfk.execute-api.us-east-1.amazonaws.com/default/fxPollyCrearAudio"
-BUCKET_NAME = "guardaaudios"  # Mismo bucket que en tu Lambda
 
 # Interfaz
 st.set_page_config(layout="centered")
@@ -21,6 +20,8 @@ if "texto_editable" not in st.session_state:
 
 # --- Procesamiento de Audio ---
 uploaded_audio = st.file_uploader("Sube tu archivo de audio (MP3)", type=["mp3"])
+
+# --- Conversión de audio a texto ---
 
 if uploaded_audio:
     st.audio(uploaded_audio, format="audio/mp3")
@@ -42,7 +43,7 @@ if uploaded_audio:
                         "texto": body_dict["texto_transcrito"],
                         "audio_url": body_dict["audio_url"]
                     }
-                    # Actualizar el texto editable con la transcripción
+
                     st.session_state.texto_editable = st.session_state.transcripcion["texto"]
                     
                     st.success("Transcripción completada")
@@ -53,7 +54,7 @@ if uploaded_audio:
             except Exception as e:
                 st.error(f"Error crítico: {str(e)}")
 
-# --- Mostrar resultados y permitir edición ---
+
 st.subheader("✏️ Texto para Polly")
 st.session_state.texto_editable = st.text_area(
     "Texto editable (se actualizará con la transcripción si subes audio):",
@@ -61,7 +62,7 @@ st.session_state.texto_editable = st.text_area(
     height=200
 )
 
-# Mostrar audio original si hay
+
 if st.session_state.transcripcion.get("audio_url"):
     st.markdown(f"""
     **Audio original:**  
